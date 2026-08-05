@@ -33,7 +33,12 @@ export default function Inventory() {
 
   return (
     <section className="card narrow">
-      <h2>Stock In / Out</h2>
+      <div className="page-header">
+        <div>
+          <h2>Stock In / Out</h2>
+          <p className="muted">Adjust inventory quantities safely and keep stock levels accurate.</p>
+        </div>
+      </div>
 
       <label>
         Product

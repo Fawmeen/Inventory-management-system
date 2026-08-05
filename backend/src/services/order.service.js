@@ -104,7 +104,7 @@ async function createOrder(userId, items) {
     }
   }
 
-  return order;
+  return { order, lowStockNotifications };
 }
 
 async function getOrdersByUser(userId) {

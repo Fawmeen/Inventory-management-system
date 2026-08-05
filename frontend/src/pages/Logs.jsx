@@ -31,8 +31,11 @@ export default function Logs() {
   return (
     <section>
       <div className="card" style={{ marginBottom: '1rem' }}>
-        <div className="row-actions">
-          <h2>Stock Notifications</h2>
+        <div className="page-header">
+          <div>
+            <h2>Stock Notifications</h2>
+            <p className="muted">Pull new alerts from the notification queue for manager review.</p>
+          </div>
           <button type="button" onClick={fetchStockUpdate} disabled={loadingUpdate}>
             {loadingUpdate ? 'Checking queue…' : 'Pull stock updates'}
           </button>
@@ -68,7 +71,9 @@ export default function Logs() {
             </ul>
           </div>
         ) : (
-          <p className="muted">Pull the queue to see manager events from the notification table.</p>
+          <div className="empty-state">
+            Pull the queue to see manager events from the notification table.
+          </div>
         )}
       </div>
 

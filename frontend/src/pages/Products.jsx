@@ -29,7 +29,10 @@ export default function Products() {
   return (
     <section>
       <div className="page-header">
-        <h2>Products</h2>
+        <div>
+          <h2>Products</h2>
+          <p className="muted">Browse products, monitor stock levels, and keep your catalog up to date.</p>
+        </div>
         <button type="button" className="btn-secondary" onClick={loadProducts}>
           Refresh
         </button>
@@ -49,7 +52,14 @@ export default function Products() {
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className={product.stock <= product.lowStockThreshold ? 'low-stock' : ''}>
-                <td>{product.name}</td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span>{product.name}</span>
+                    {product.stock <= product.lowStockThreshold && (
+                      <span className="badge badge-danger">Low stock</span>
+                    )}
+                  </div>
+                </td>
                 <td>{product.category}</td>
                 <td>${Number(product.price).toFixed(2)}</td>
                 <td>{product.stock}</td>

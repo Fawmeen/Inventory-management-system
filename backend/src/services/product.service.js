@@ -1,5 +1,7 @@
 const prisma = require('../prisma/client');
 const { handleLowStockNotification } = require('./notification.service');
+const { getAllUserEmails } = require('./userNotification.service');
+const { sendNewProductEmail } = require('./mail.service');
 
 async function getAllProducts() {
   return prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
@@ -10,7 +12,7 @@ async function getProductById(id) {
 }
 
 async function createProduct(data) {
-  return prisma.product.create({
+  const product = await prisma.product.create({
     data: {
       name: data.name,
       category: data.category,
@@ -19,6 +21,15 @@ async function createProduct(data) {
       lowStockThreshold: data.lowStockThreshold ?? 5,
     },
   });
+
+  const users = await getAllUserEmails();
+  const userEmails = users.map((user) => user.email);
+
+  sendNewProductEmail(product, userEmails).catch((error) => {
+    console.error('Failed to send new product emails:', error);
+  });
+
+  return product;
 }
 
 async function updateProduct(id, data) {
