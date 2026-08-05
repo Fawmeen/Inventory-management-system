@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MANAGER
+  STAFF
+  USER
+}
+
+enum LogType {
+  STOCK_IN
+  STOCK_OUT
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(USER)
+  inventoryLogs InventoryLog[]
+  orders        Order[]
+}
+
+model Product {
+  id                Int            @id @default(autoincrement())
+  name              String
+  category          String
+  price             Decimal        @db.Decimal(10, 2)
+  stock             Int            @default(0)
+  lowStockThreshold Int            @default(5)
+  notificationSent  Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  inventoryLogs     InventoryLog[]
+  orderItems        OrderItem[]
+}
+
+model InventoryLog {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  staffId   Int
+  type      LogType
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  staff   User    @relation(fields: [staffId], references: [id])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  total     Decimal     @db.Decimal(10, 2)
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model NotificationQueue {
+  id               Int      @id @default(autoincrement())
+  type             String
+  productId        Int
+  productName      String
+  stock            Int
+  threshold        Int?
+  thresholdReached Boolean  @default(false)
+  processed        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+}
