@@ -40,6 +40,7 @@ model Product {
   updatedAt         DateTime       @updatedAt
   inventoryLogs     InventoryLog[]
   orderItems        OrderItem[]
+  notificationQueues NotificationQueue[]
 }
 
 model InventoryLog {

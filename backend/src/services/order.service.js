@@ -1,5 +1,5 @@
 const prisma = require('../prisma/client');
-const { handleLowStockNotification } = require('./notification.service');
+const { queueNotification } = require('./notification.service');
 
 async function createOrder(userId, items) {
   if (!items || items.length === 0) {
@@ -8,7 +8,7 @@ async function createOrder(userId, items) {
     throw error;
   }
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const productIds = items.map((item) => Number(item.productId));
     const products = await tx.product.findMany({
       where: { id: { in: productIds } },
@@ -23,6 +23,7 @@ async function createOrder(userId, items) {
     const productMap = new Map(products.map((p) => [p.id, p]));
     let total = 0;
     const orderItemsData = [];
+    const lowStockNotifications = [];
 
     for (const item of items) {
       const product = productMap.get(Number(item.productId));
@@ -34,8 +35,6 @@ async function createOrder(userId, items) {
         throw error;
       }
 
-      // The low-stock threshold is only used for alerts, not for blocking purchases.
-      // Users may still buy until stock reaches 0.
       if (product.stock < quantity) {
         const error = new Error('Insufficient stock');
         error.statusCode = 409;
@@ -63,8 +62,9 @@ async function createOrder(userId, items) {
 
     for (const { product, quantity } of orderItemsData) {
       const newStock = product.stock - quantity;
-      const notificationSent =
-        newStock > product.lowStockThreshold ? false : product.notificationSent;
+      const shouldNotifyLowStock =
+        newStock <= product.lowStockThreshold && !product.notificationSent;
+      const notificationSent = shouldNotifyLowStock ? true : product.notificationSent;
 
       const updateResult = await tx.product.updateMany({
         where: { id: product.id, stock: { gte: quantity } },
@@ -77,12 +77,34 @@ async function createOrder(userId, items) {
         throw error;
       }
 
-      const updated = await tx.product.findUnique({ where: { id: product.id } });
-      await handleLowStockNotification(updated, tx);
+      if (shouldNotifyLowStock) {
+        lowStockNotifications.push({
+          type: 'LOW_STOCK',
+          productId: product.id,
+          productName: product.name,
+          stock: newStock,
+          threshold: product.lowStockThreshold,
+          thresholdReached: true,
+        });
+      }
     }
 
-    return order;
+    return { order, lowStockNotifications };
   });
+
+  const { order, lowStockNotifications } = result;
+
+  if (lowStockNotifications.length > 0) {
+    for (const notification of lowStockNotifications) {
+      try {
+        await queueNotification(notification);
+      } catch (error) {
+        console.error('Failed to queue low stock notification:', error);
+      }
+    }
+  }
+
+  return order;
 }
 
 async function getOrdersByUser(userId) {

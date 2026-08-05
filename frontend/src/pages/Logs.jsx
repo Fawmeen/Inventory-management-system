@@ -40,7 +40,7 @@ export default function Logs() {
 
         {stockError && <p className="error">{stockError}</p>}
 
-        {stockUpdate ? (
+        {stockUpdate && stockUpdate.message ? (
           <div className="notification-card">
             <p>
               <strong>Event:</strong> {stockUpdate.message.type}
@@ -52,8 +52,7 @@ export default function Logs() {
               <strong>Stock:</strong> {stockUpdate.message.stock}
             </p>
             <p>
-              <strong>Threshold:</strong> {stockUpdate.message.threshold}
-            </p>
+              <strong>Threshold:</strong> {stockUpdate.message.threshold}</p>
             <p>
               <strong>Time:</strong> {new Date(stockUpdate.message.timestamp).toLocaleString()}
             </p>

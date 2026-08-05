@@ -1,4 +1,4 @@
-const { consumeQueuedNotification } = require('../services/notification.service');
+const { consumeQueuedNotification, markNotificationProcessed } = require('../services/notification.service');
 const { createUserNotifications } = require('../services/userNotification.service');
 
 async function getStockUpdate(req, res) {
@@ -6,7 +6,7 @@ async function getStockUpdate(req, res) {
     const notification = await consumeQueuedNotification();
 
     if (!notification) {
-      return res.status(200).json({ message: 'No stock updates available' });
+      return res.status(200).json({ message: null, userNotifications: [] });
     }
 
     const message = {
@@ -20,6 +20,8 @@ async function getStockUpdate(req, res) {
     };
 
     const userNotifications = await createUserNotifications(message);
+    await markNotificationProcessed(notification.id);
+
     return res.status(200).json({ message, userNotifications });
   } catch (error) {
     return res.status(500).json({ message: error.message });

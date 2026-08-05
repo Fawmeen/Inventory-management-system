@@ -52,26 +52,23 @@ async function updateStockWithNotification(productId, newStock, db = prisma) {
 }
 
 async function consumeQueuedNotification() {
-  const notification = await prisma.notificationQueue.findFirst({
+  return prisma.notificationQueue.findFirst({
     where: { processed: false },
     orderBy: { createdAt: 'asc' },
   });
+}
 
-  if (!notification) {
-    return null;
-  }
-
-  await prisma.notificationQueue.update({
-    where: { id: notification.id },
+async function markNotificationProcessed(id) {
+  return prisma.notificationQueue.update({
+    where: { id },
     data: { processed: true },
   });
-
-  return notification;
 }
 
 module.exports = {
   handleLowStockNotification,
   updateStockWithNotification,
   consumeQueuedNotification,
+  markNotificationProcessed,
   queueNotification,
 };

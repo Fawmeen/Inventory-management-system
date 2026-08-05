@@ -2,7 +2,6 @@ const prisma = require('../prisma/client');
 const {
   updateStockWithNotification,
   handleLowStockNotification,
-  queueNotification,
 } = require('./notification.service');
 
 async function stockIn(staffId, productId, quantity) {
@@ -24,15 +23,6 @@ async function stockIn(staffId, productId, quantity) {
 
   const newStock = product.stock + quantity;
   const updated = await updateStockWithNotification(product.id, newStock, prisma);
-
-  await queueNotification({
-    type: 'STOCK_ADDED',
-    productId: updated.id,
-    productName: updated.name,
-    stock: updated.stock,
-    threshold: updated.lowStockThreshold,
-    thresholdReached: updated.stock <= updated.lowStockThreshold,
-  });
 
   return prisma.inventoryLog.create({
     data: {
@@ -76,15 +66,6 @@ async function stockOut(staffId, productId, quantity) {
   }
 
   const updated = await prisma.product.findUnique({ where: { id: product.id } });
-
-  await queueNotification({
-    type: 'STOCK_OUT',
-    productId: updated.id,
-    productName: updated.name,
-    stock: updated.stock,
-    threshold: updated.lowStockThreshold,
-    thresholdReached: updated.stock <= updated.lowStockThreshold,
-  });
 
   await handleLowStockNotification(updated);
 
