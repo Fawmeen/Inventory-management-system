@@ -32,6 +32,7 @@ export const api = {
     }),
 
   getProducts: () => request('/products'),
+  getNotifications: () => request('/products'),
 
   createProduct: (body) =>
     request('/products', { method: 'POST', body: JSON.stringify(body) }),

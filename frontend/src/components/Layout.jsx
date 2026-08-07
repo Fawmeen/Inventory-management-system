@@ -18,7 +18,10 @@ export default function Layout() {
   }
 
   if (user.role === 'USER') {
-    links.push({ to: '/orders', label: 'Orders', roles: ['USER'] });
+    links.push(
+      { to: '/orders', label: 'Orders', roles: ['USER'] },
+      { to: '/notifications', label: 'Notifications', roles: ['USER'] }
+    );
   }
 
   return (

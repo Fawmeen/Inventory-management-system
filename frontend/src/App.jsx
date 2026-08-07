@@ -9,6 +9,7 @@ import ManageProducts from './pages/ManageProducts';
 import Inventory from './pages/Inventory';
 import Logs from './pages/Logs';
 import Orders from './pages/Orders';
+import Notifications from './pages/Notifications';
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
 
               <Route element={<ProtectedRoute roles={['USER']} />}>
                 <Route path="/orders" element={<Orders />} />
+                <Route path="/notifications" element={<Notifications />} />
               </Route>
             </Route>
           </Route>
